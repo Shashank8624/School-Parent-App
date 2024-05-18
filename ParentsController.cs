@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SchoolParentApp.Data;
 using SchoolParentApp.Models;
+using System.Threading.Tasks;
 
 namespace SchoolParentApp.Controllers
 {
@@ -10,28 +11,30 @@ namespace SchoolParentApp.Controllers
     [ApiController]
     public class ParentsController : ControllerBase
     {
-        private readonly ApplicationDbContext dbContext;
+        private readonly ApplicationDbContext _dbContext;
         public ParentsController(ApplicationDbContext dbContext)
         {
-            this.dbContext = dbContext;
+            _dbContext = dbContext;
 
         }
-
 
         [HttpPost]
         [Route("AddParent")]
         public async Task<IActionResult> AddParent(Parent parent)
         {
+            try
+            {
+                long registrationId = GenerateRandomRegistrationId();
+                parent.RegistrationId = registrationId;
 
-            // Generate random value with in specified range 
-            long registrationId = GenerateRandomRegistrationId();
-            parent.RegistrationId = registrationId;
-
-            dbContext.Parents.Add(parent);
-
-            await dbContext.SaveChangesAsync();
-            return Ok(parent);
-
+                _dbContext.Parents.Add(parent);
+                await _dbContext.SaveChangesAsync();
+                return Ok(parent);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
+            }
         }
 
         private long GenerateRandomRegistrationId()
@@ -44,7 +47,7 @@ namespace SchoolParentApp.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllParents()
         {
-            var parents = await dbContext.Parents.ToListAsync();
+            var parents = await _dbContext.Parents.ToListAsync();
             return Ok(parents);
         }
 
@@ -53,9 +56,9 @@ namespace SchoolParentApp.Controllers
         public async Task<IActionResult> EditParent([FromRoute] int id, Parent parent)
         {
 
-            var parents = await dbContext.Parents.FirstOrDefaultAsync(x => x.ParentId == parent.ParentId);
-            dbContext.Entry(parents).CurrentValues.SetValues(parent);
-            await dbContext.SaveChangesAsync();
+            var parents = await _dbContext.Parents.FirstOrDefaultAsync(x => x.ParentId == parent.ParentId);
+            _dbContext.Entry(parents).CurrentValues.SetValues(parent);
+            await _dbContext.SaveChangesAsync();
 
             return Ok(parent);
 
@@ -65,9 +68,9 @@ namespace SchoolParentApp.Controllers
         [Route("{id:int}")]
         public async Task<IActionResult> DeleteParent([FromRoute] int id)
         {
-            var parent = await dbContext.Parents.FirstOrDefaultAsync(x => x.ParentId == id);
-            dbContext.Parents.Remove(parent);
-            await dbContext.SaveChangesAsync();
+            var parent = await _dbContext.Parents.FirstOrDefaultAsync(x => x.ParentId == id);
+            _dbContext.Parents.Remove(parent);
+            await _dbContext.SaveChangesAsync();
 
             return Ok(parent);
 
@@ -77,3 +80,4 @@ namespace SchoolParentApp.Controllers
         }
     }
 }
+
