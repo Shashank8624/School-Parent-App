@@ -1,0 +1,118 @@
+App.jsx
+
+import { Route, Routes } from "react-router-dom";
+import { Navbar } from "./cmp/Navbar";
+import { Home, About } from "./cmp/pages/index";
+function App() {
+  return (
+    <div className="App">
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/About" element={<About />} />
+      </Routes>
+    </div>
+  );
+}
+
+export default App;
+
+
+Home.jsx
+
+import React from "react";
+import "./Home.css";
+import { useState, useEffect } from "react";
+
+const images = [
+  require("../ImageData/SchoolImage.jpg").default,
+  require("../ImageData/SchoolImage2.jpg").default,
+  require("../ImageData/SchoolImage3.jpg").default,
+];
+export const Home = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 3000); // change slide every 3 seconds
+
+    return () => clearInterval(interval); // cleanup on unmount
+  }, []);
+
+  return (
+    <div className="carousel">
+      {images.map((image, index) => (
+        <div
+          key={index}
+          className={`slide ${index === currentIndex ? "active" : ""}`}
+        >
+          <img src={image} alt={`Slide ${index + 1}`} />
+        </div>
+      ))}
+      <button
+        className="prev"
+        onClick={() =>
+          setCurrentIndex((currentIndex - 1 + images.length) % images.length)
+        }
+      >
+        ❮
+      </button>
+      <button
+        className="next"
+        onClick={() => setCurrentIndex((currentIndex + 1) % images.length)}
+      >
+        ❯
+      </button>
+    </div>
+  );
+};
+
+
+Home.css
+.carousel {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: auto;
+  overflow: hidden;
+}
+
+.slide {
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+.slide img {
+  width: 100%;
+  display: block;
+}
+
+.slide.active {
+  opacity: 1;
+}
+
+.prev,
+.next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.prev {
+  left: 10px;
+}
+
+.next {
+  right: 10px;
+}
