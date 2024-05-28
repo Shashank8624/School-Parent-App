@@ -101,3 +101,130 @@ export const Home = () => {
     </>
   );
 };
+
+
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Home.css";
+import { Link } from "react-router-dom";
+
+const slideImages =
+  "https://www.greatschools.org/gk/wp-content/uploads/2014/03/The-school-visit-what-to-look-for-what-to-ask-1-750x325.jpg";
+
+const logoUrl =
+  "http://www.connectustech.com/wp-content/uploads/2021/01/connectusschool-app-for-parents.png";
+
+export const Home = () => {
+  const [registrationId, setRegistrationId] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [userType, setUserType] = useState("staff");
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      // Fetch users from the JSON file
+      const response = await fetch("/users.json");
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const users = await response.json();
+
+      // Check if the user exists and the password matches
+      const user = users.find(
+        (user) =>
+          user.registrationId === registrationId && user.password === password
+      );
+
+      if (user) {
+        if (userType === "staff") {
+          navigate("/StaffDashboard");
+        } else if (userType === "Parents") {
+          navigate("/ParentDashboard");
+        }
+        // Redirect to the dashboard
+      } else {
+        setError("Invalid registration ID or password");
+      }
+    } catch (error) {
+      console.error("Error fetching the users:", error);
+      setError("Failed to load user data");
+    }
+  };
+
+  return (
+    <>
+      <div className="header-container">
+        <div className="logo-container">
+          <img src={logoUrl} width="100" height="100" alt="Logo" />
+        </div>
+        <div className="school-name">
+          <h1 className="heading-title">School Parent App</h1>
+        </div>
+      </div>
+      <div className="main-page-container">
+        <div className="slide-container">
+          <img src={slideImages} alt="slide" />
+        </div>
+        <div className="main-container">
+          <div className="login-container">
+            <h2>Login</h2>
+            <form onSubmit={handleLogin}>
+              <div>
+                <label>Registration ID</label>
+                <input
+                  type="text"
+                  value={registrationId}
+                  onChange={(e) => setRegistrationId(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label>Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="radio-group">
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="staff"
+                    checked={userType === "staff"}
+                    onChange={(e) => setUserType(e.target.value)}
+                  />
+                  Staff
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="parent"
+                    checked={userType === "parent"}
+                    onChange={(e) => setUserType(e.target.value)}
+                  />
+                  Parent
+                </label>
+              </div>
+              {error && <p style={{ color: "red" }}>{error}</p>}
+              <button type="submit">Login</button>
+              <div className="footer">
+                <p>
+                  don't have an account ?
+                  <Link to="/Register" className="register-footer">
+                    Register Now
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
