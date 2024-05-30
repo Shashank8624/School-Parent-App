@@ -228,3 +228,106 @@ export const Home = () => {
   );
 };
 
+
+
+// Home.js
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useHistory } from 'react-router-dom';
+
+const Home = () => {
+  const [userType, setUserType] = useState('Staff');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [registrationId, setRegistrationId] = useState('');
+  const history = useHistory();
+
+  const handleLogin = async () => {
+    if (userType === 'Staff') {
+      try {
+        const response = await axios.get('/users.json');
+        const users = response.data;
+        const user = users.find(user => user.username === username && user.password === password);
+        if (user) {
+          history.push('/StaffDashboard');
+        } else {
+          alert('Invalid credentials for Staff');
+        }
+      } catch (error) {
+        console.error('Error fetching users.json:', error);
+      }
+    } else if (userType === 'Parents') {
+      try {
+        const response = await axios.post('/api/login', { registrationId, password });
+        if (response.data.success) {
+          history.push('/ParentDashboard');
+        } else {
+          alert('Invalid credentials for Parents');
+        }
+      } catch (error) {
+        console.error('Error logging in:', error);
+      }
+    }
+  };
+
+  return (
+    <div>
+      <h2>Login Form</h2>
+      <div>
+        <label>
+          <input
+            type="radio"
+            value="Staff"
+            checked={userType === 'Staff'}
+            onChange={() => setUserType('Staff')}
+          />
+          Staff
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="Parents"
+            checked={userType === 'Parents'}
+            onChange={() => setUserType('Parents')}
+          />
+          Parents
+        </label>
+      </div>
+      {userType === 'Staff' ? (
+        <div>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+      ) : (
+        <div>
+          <input
+            type="text"
+            placeholder="Registration ID"
+            value={registrationId}
+            onChange={(e) => setRegistrationId(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+      )}
+      <button onClick={handleLogin}>Login</button>
+    </div>
+  );
+};
+
+export default Home;
+
